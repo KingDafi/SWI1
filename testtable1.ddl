@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Počítač: 127.0.0.1
--- Vytvořeno: Pon 16. úno 2026, 09:20
+-- Vytvořeno: Pon 16. úno 2026, 09:31
 -- Verze serveru: 10.4.32-MariaDB
 -- Verze PHP: 8.2.12
 
@@ -41,6 +41,16 @@ CREATE TABLE `testtable1` (
 --
 ALTER TABLE `testtable1`
   ADD PRIMARY KEY (`id`);
+
+--
+-- AUTO_INCREMENT pro tabulky
+--
+
+--
+-- AUTO_INCREMENT pro tabulku `testtable1`
+--
+ALTER TABLE `testtable1`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
