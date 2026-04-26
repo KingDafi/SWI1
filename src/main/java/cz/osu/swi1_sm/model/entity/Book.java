@@ -2,6 +2,8 @@ package cz.osu.swi1_sm.model.entity;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -34,6 +36,9 @@ public class Book {
     @Column(nullable = true)
     private BigDecimal originalPrice;
 
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
+    private List<Borrowing> borrowings = new ArrayList<>();
+
     public Book() {}
 
     public Book(UUID bookId, String title, String author, String coverUrl,
@@ -63,6 +68,7 @@ public class Book {
     public int getAvailableQuantity() { return availableQuantity; }
     public BigDecimal getPrice() { return price; }
     public BigDecimal getOriginalPrice() { return originalPrice; }
+    public List<Borrowing> getBorrowings() { return borrowings; }
 
     public void setBookId(UUID bookId) { this.bookId = bookId; }
     public void setTitle(String title) { this.title = title; }
@@ -73,4 +79,5 @@ public class Book {
     public void setAvailableQuantity(int availableQuantity) { this.availableQuantity = availableQuantity; }
     public void setPrice(BigDecimal price) { this.price = price; }
     public void setOriginalPrice(BigDecimal originalPrice) { this.originalPrice = originalPrice; }
+    public void setBorrowings(List<Borrowing> borrowings) { this.borrowings = borrowings; }
 }
