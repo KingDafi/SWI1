@@ -5,6 +5,7 @@ import cz.osu.swi1_sm.service.BookService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/books")
@@ -21,8 +22,8 @@ public class BookController {
     }
 
     @PostMapping("/{id}/borrow")
-    public void borrowBook(@PathVariable String id) {
-        bookService.borrowBook(id);
+    public void borrowBook(@PathVariable String id, @RequestParam UUID userId) {
+        bookService.borrowBook(id, userId);
     }
 
     @PostMapping("/{id}/return")
