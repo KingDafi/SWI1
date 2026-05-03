@@ -19,18 +19,18 @@ public class UserService {
             throw new IllegalArgumentException("User with this email already exists.");
         }
         AppUser user = new AppUser();
-        user.setUsername(email);
+        user.setEmail(email);
         user.setPassword(password);
         user.setRole(Role.MEMBER);
         userRepository.save(user);
-        return new UserToken(name, Role.MEMBER);
+        return new UserToken(name, email, Role.MEMBER);
     }
 
     public UserToken login(String email, String password) {
         AppUser user = userRepository.findByUsernameIgnoreCase(email);
         if (user != null) {
             if (user.getPassword().equals(password)) {
-                return new UserToken(user.getEmail(), user.getRole());
+                return new UserToken(user.getEmail(), user.getEmail(), user.getRole());
             } else {
                 throw new RuntimeException("Wrong password!");
             }
