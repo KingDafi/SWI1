@@ -6,6 +6,7 @@ import cz.osu.swi1_sm.model.entity.Borrowing;
 import cz.osu.swi1_sm.model.repository.AppUserRepository;
 import cz.osu.swi1_sm.model.repository.BookRepository;
 import cz.osu.swi1_sm.model.repository.BorrowingRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -54,11 +55,25 @@ public class BookService {
         borrowingRepository.save(borrowing);
     }
 
+    @Transactional
     public void returnBook(String id) {
-        Book book = bookRepository.findById(UUID.fromString(id)).orElseThrow();
+        UUID bookId = UUID.fromString(id);
+
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new IllegalArgumentException("Book not found"));
+
+        Borrowing borrowing = borrowingRepository.findByBook_BookId(bookId).stream()
+                .filter(b -> b.getReturnedAt() == null)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("This book is not currently borrowed"));
+
+        borrowing.setReturnedAt(LocalDate.now());
+        borrowingRepository.save(borrowing);
+
         if (book.getAvailableQuantity() >= book.getQuantity()) {
             throw new IllegalStateException("All copies already returned");
         }
+
         book.setAvailableQuantity(book.getAvailableQuantity() + 1);
         bookRepository.save(book);
     }

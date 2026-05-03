@@ -91,13 +91,21 @@ public class BookServiceTest {
     @Test
     void returnBook_success() {
         Book book = createBook();
+        Borrowing borrowing = new Borrowing();
+        borrowing.setBook(book);
+        borrowing.setReturnedAt(null); // active borrowing
 
         when(bookRepository.findById(book.getBookId()))
                 .thenReturn(Optional.of(book));
+        when(borrowingRepository.findByBook_BookId(book.getBookId()))
+                .thenReturn(List.of(borrowing));
 
         bookService.returnBook(book.getBookId().toString());
 
         assertEquals(4, book.getAvailableQuantity());
+        assertNotNull(borrowing.getReturnedAt());
+
+        verify(borrowingRepository).save(borrowing);
         verify(bookRepository).save(book);
     }
 
@@ -106,8 +114,14 @@ public class BookServiceTest {
         Book book = createBook();
         book.setAvailableQuantity(book.getQuantity());
 
+        Borrowing borrowing = new Borrowing();
+        borrowing.setBook(book);
+        borrowing.setReturnedAt(null);
+
         when(bookRepository.findById(book.getBookId()))
                 .thenReturn(Optional.of(book));
+        when(borrowingRepository.findByBook_BookId(book.getBookId()))
+                .thenReturn(List.of(borrowing));
 
         IllegalStateException ex = assertThrows(
                 IllegalStateException.class,
