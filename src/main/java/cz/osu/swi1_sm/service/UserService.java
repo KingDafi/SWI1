@@ -18,7 +18,7 @@ public class UserService {
         AppUser user = userRepository.findByUsernameIgnoreCase(email);
         if (user != null) {
             if (user.getPassword().equals(password)) {
-                return new UserToken(user.getUsername(), user.getRole());
+                return new UserToken(user.getEmail(), user.getRole());
             } else {
                 throw new RuntimeException("Wrong password!");
             }
