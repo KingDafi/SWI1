@@ -1,6 +1,7 @@
 package cz.osu.swi1_sm.controller;
 
 import cz.osu.swi1_sm.model.dto.LoginRequest;
+import cz.osu.swi1_sm.model.dto.RegisterRequest;
 import cz.osu.swi1_sm.model.dto.UserToken;
 import cz.osu.swi1_sm.service.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,11 @@ public class AuthController {
 
     public AuthController(UserService userService) {
         this.userService = userService;
+    }
+
+    @PostMapping("/register")
+    public UserToken register(@RequestBody RegisterRequest request) {
+        return userService.register(request.getName(), request.getEmail(), request.getPassword());
     }
 
     @PostMapping("/login")
