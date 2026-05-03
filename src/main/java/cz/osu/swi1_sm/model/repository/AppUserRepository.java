@@ -8,6 +8,6 @@ import java.util.UUID;
 
 @Repository
 public interface AppUserRepository extends CrudRepository<AppUser, UUID> {
-    boolean existsByUsernameIgnoreCase(String username);
-    AppUser findByUsernameIgnoreCase(String username);
+    boolean existsByEmailIgnoreCase(String username);
+    AppUser findByEmailIgnoreCase(String username);
 }

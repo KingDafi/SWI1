@@ -24,11 +24,11 @@ public class UserServiceTest {
     @Test
     void login_validCredentials_returnsUserToken() {
         AppUser user = new AppUser();
-        user.setUsername("student@osu.cz");
+        user.setEmail("student@osu.cz");
         user.setPassword("heslo");
         user.setRole(Role.MEMBER);
 
-        when(userRepository.findByUsernameIgnoreCase("student@osu.cz")).thenReturn(user);
+        when(userRepository.findByEmailIgnoreCase("student@osu.cz")).thenReturn(user);
 
         UserToken token = userService.login("student@osu.cz", "heslo");
 
@@ -39,17 +39,17 @@ public class UserServiceTest {
     @Test
     void login_wrongPassword_throwsException() {
         AppUser user = new AppUser();
-        user.setUsername("student@osu.cz");
+        user.setEmail("student@osu.cz");
         user.setPassword("heslo");
 
-        when(userRepository.findByUsernameIgnoreCase("student@osu.cz")).thenReturn(user);
+        when(userRepository.findByEmailIgnoreCase("student@osu.cz")).thenReturn(user);
 
         assertThrows(RuntimeException.class, () -> userService.login("student@osu.cz", "wrongpassword"));
     }
 
     @Test
     void login_userDoesNotExist_throwsException() {
-        when(userRepository.findByUsernameIgnoreCase("unknown@osu.cz")).thenReturn(null);
+        when(userRepository.findByEmailIgnoreCase("unknown@osu.cz")).thenReturn(null);
 
         assertThrows(IllegalArgumentException.class, () -> userService.login("unknown@osu.cz", "heslo"));
     }

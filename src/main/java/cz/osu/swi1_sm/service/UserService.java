@@ -15,7 +15,7 @@ public class UserService {
     }
 
     public UserToken register(String name, String email, String password) {
-        if (userRepository.existsByUsernameIgnoreCase(email)) {
+        if (userRepository.existsByEmailIgnoreCase(email)) {
             throw new IllegalArgumentException("User with this email already exists.");
         }
         AppUser user = new AppUser();
@@ -27,7 +27,7 @@ public class UserService {
     }
 
     public UserToken login(String email, String password) {
-        AppUser user = userRepository.findByUsernameIgnoreCase(email);
+        AppUser user = userRepository.findByEmailIgnoreCase(email);
         if (user != null) {
             if (user.getPassword().equals(password)) {
                 return new UserToken(user.getEmail(), user.getEmail(), user.getRole());
