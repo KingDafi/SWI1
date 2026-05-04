@@ -1,5 +1,5 @@
-INSERT INTO app_user (user_id, username, password, role)
-VALUES (gen_random_uuid(), 'student@osu.cz', 'heslo', 'MEMBER');
+INSERT INTO app_user (user_id, name, email, password, role)
+VALUES (gen_random_uuid(), 'Student', 'student@osu.cz', 'heslo', 'MEMBER');
 
 INSERT INTO book (book_id, title, author, category, quantity, available_quantity, price, original_price, cover_url)
 VALUES (gen_random_uuid(), 'English Vocabulary in Use: Pre-intermediate', 'Stuart Redman', 'Učebnice', 5, 5, 550, 650, 'http://localhost:8080/covers/vocabulary.jpg');
