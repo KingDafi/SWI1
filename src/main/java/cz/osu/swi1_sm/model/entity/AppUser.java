@@ -14,7 +14,7 @@ public class AppUser {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
@@ -25,6 +25,7 @@ public class AppUser {
     private Role role = Role.MEMBER;
 
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<Borrowing> borrowings = new ArrayList<>();
 
     public AppUser() {}

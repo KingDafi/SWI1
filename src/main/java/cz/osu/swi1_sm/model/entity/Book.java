@@ -37,6 +37,7 @@ public class Book {
     private BigDecimal originalPrice;
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<Borrowing> borrowings = new ArrayList<>();
 
     public Book() {}
