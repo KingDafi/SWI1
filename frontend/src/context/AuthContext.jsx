@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect } from 'react'; // ✅ FIX: useE|ect → useEffect
-import { tokenService } from '../services/tokenService'; // ✅ FIX: correct path
+import { createContext, useContext, useState, useEffect } from 'react';
+import { tokenService } from '../services/tokenService';
+import axiosClient from '../services/axiosClient';
 
 const AuthContext = createContext(null);
 
@@ -18,31 +19,29 @@ export function AuthProvider({ children }) {
     }, []);
 
     const login = async (credentials) => {
-        const users = JSON.parse(localStorage.getItem('library_users')) || [];
-        const validUser = users.find(
-            (u) => u.email === credentials.email && u.password === credentials.password
-        );
-        if (!validUser) throw new Error('Neplatný e-mail nebo heslo.');
+        try {
+            const response = await axiosClient.post('/auth/login', credentials);
+            const userData = response.data; // This is the UserToken DTO from Java
 
-        const userData = { name: validUser.name, role: validUser.role, email: validUser.email };
-        tokenService.setTokens('mock-access-token', 'mock-refresh-token');
-        localStorage.setItem('activeUser', JSON.stringify(userData));
-        setUser(userData);
+            // Use the actual UserID as a "token" for your local session
+            tokenService.setTokens(userData.userId, 'dummy-refresh');
+            localStorage.setItem('activeUser', JSON.stringify(userData));
+            setUser(userData);
+        } catch (err) {
+            throw new Error(err.response?.data || 'Neplatný e-mail nebo heslo.');
+        }
     };
 
     const register = async (userData) => {
-        const users = JSON.parse(localStorage.getItem('library_users')) || [];
-        if (users.some((u) => u.email === userData.email)) {
-            throw new Error('Uživatel s tímto e-mailem již existuje.');
+        try {
+            const response = await axiosClient.post('/auth/register', userData);
+            const newUser = response.data;
+            tokenService.setTokens('mock-access-token', 'mock-refresh-token');
+            localStorage.setItem('activeUser', JSON.stringify(newUser));
+            setUser(newUser);
+        } catch (err) {
+            throw new Error(err.response?.data?.message || 'Registrace se nezdařila.');
         }
-        const newUser = { ...userData, role: 'MEMBER' };
-        users.push(newUser);
-        localStorage.setItem('library_users', JSON.stringify(users));
-
-        const sessionData = { name: newUser.name, role: newUser.role, email: newUser.email };
-        tokenService.setTokens('mock-access-token', 'mock-refresh-token');
-        localStorage.setItem('activeUser', JSON.stringify(sessionData));
-        setUser(sessionData);
     };
 
     const logout = () => {

@@ -12,4 +12,7 @@ public interface BookRepository extends CrudRepository<Book, UUID> {
     List<Book> findByTitleContainingIgnoreCase(String title);
     List<Book> findByAuthorContainingIgnoreCase(String author);
     List<Book> findByCategoryContainingIgnoreCase(String category);
+    List<Book> findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCaseOrCategoryContainingIgnoreCase(
+            String title, String author, String category
+    );
 }

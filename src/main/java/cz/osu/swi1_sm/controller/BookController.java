@@ -1,7 +1,9 @@
 package cz.osu.swi1_sm.controller;
 
+import cz.osu.swi1_sm.model.dto.BorrowRequest;
 import cz.osu.swi1_sm.model.entity.Book;
 import cz.osu.swi1_sm.service.BookService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,12 +24,20 @@ public class BookController {
     }
 
     @PostMapping("/{id}/borrow")
-    public void borrowBook(@PathVariable String id, @RequestParam UUID userId) {
-        bookService.borrowBook(id, userId);
+    public ResponseEntity<Void> borrowBook(
+            @PathVariable String id,
+            @RequestBody BorrowRequest request
+    ) {
+        bookService.borrowBook(id, request.getUserId());
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/return")
-    public void returnBook(@PathVariable String id) {
-        bookService.returnBook(id);
+    public ResponseEntity<Void> returnBook(
+            @PathVariable String id,
+            @RequestBody BorrowRequest request
+    ) {
+        bookService.returnBook(id, request.getUserId());
+        return ResponseEntity.noContent().build();
     }
 }

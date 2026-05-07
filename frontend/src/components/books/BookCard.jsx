@@ -3,18 +3,18 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function BookCard({ book }) {
-    const { borrowBook, isBorrowed } = useBorrow();
+    const { borrowBook } = useBorrow();
     const { user } = useAuth();
     const navigate = useNavigate();
 
-    const alreadyBorrowed = isBorrowed(book.id);
+    const isBookAvailable = book.availableQuantity > 0;
 
     const handleBorrow = () => {
         if (!user) {
             navigate('/login');
             return;
         }
-        borrowBook(book);
+        borrowBook(book.bookId, user.userId);
     };
 
     return (
@@ -52,26 +52,23 @@ export default function BookCard({ book }) {
 
             {/* Availability + Borrow Button */}
             <div className="flex flex-col items-end gap-2 flex-shrink-0">
-        <span
-            className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                book.available && !alreadyBorrowed
-                    ? 'bg-green-50 text-green-700 border border-green-200'
-                    : 'bg-red-50 text-red-600 border border-red-200'
-            }`}
-        >
-          {alreadyBorrowed ? 'Vypůjčeno vámi' : book.available ? 'Dostupná' : 'Nedostupná'}
-        </span>
+
+                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                    isBookAvailable ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
+                }`}>
+    {isBookAvailable ? 'Dostupná' : 'Nedostupná'}
+</span>
 
                 <button
                     onClick={handleBorrow}
-                    disabled={!book.available || alreadyBorrowed}
+                    disabled={!book.available}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                        !book.available || alreadyBorrowed
+                        !book.available
                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
                             : 'bg-[#007bff] hover:bg-[#0056b3] text-white cursor-pointer'
                     }`}
                 >
-                    {alreadyBorrowed ? 'Již vypůjčeno' : 'Půjčit knihu'}
+                    {book.available ? 'Půjčit knihu' : 'Nedostupné'}
                 </button>
             </div>
         </div>

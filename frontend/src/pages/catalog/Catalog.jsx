@@ -24,7 +24,7 @@ export default function Catalog() {
                 {books.length === 0 ? (
                     <p className="text-gray-500 py-8">Žádné knihy nebyly nalezeny.</p>
                 ) : (
-                    books.map((book) => <BookCard key={book.id} book={book} />)
+                    books.map((book) => <BookCard key={book.bookId} book={book} />)
                 )}
             </div>
         </div>

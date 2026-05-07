@@ -9,6 +9,13 @@ import java.util.UUID;
 
 @Repository
 public interface BorrowingRepository extends CrudRepository<Borrowing, UUID> {
+
     List<Borrowing> findByAppUser_UserId(UUID userId);
+
     List<Borrowing> findByBook_BookId(UUID bookId);
+
+    boolean existsByAppUser_UserIdAndBook_BookIdAndReturnedAtIsNull(
+            UUID userId,
+            UUID bookId
+    );
 }
