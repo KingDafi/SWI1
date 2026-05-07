@@ -70,17 +70,16 @@ public class BookService {
     }
 
     @Transactional
-    public void returnBook(String id, UUID userId) { // Added userId parameter
+    public void returnBook(String id, UUID userId) {
         UUID bookId = UUID.fromString(id);
 
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("Book not found"));
 
-        // Find the specific borrowing for THIS user that hasn't been returned yet
-        Borrowing borrowing = borrowingRepository.findByBook_BookId(bookId).stream()
-                .filter(b -> b.getReturnedAt() == null && b.getAppUser().getUserId().equals(userId))
+        Borrowing borrowing = borrowingRepository.findByAppUser_UserId(userId).stream()
+                .filter(b -> b.getBook().getBookId().equals(bookId) && b.getReturnedAt() == null)
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("This user does not have an active borrowing for this book"));
+                .orElseThrow(() -> new IllegalStateException("This user does not have this book borrowed"));
 
         borrowing.setReturnedAt(LocalDate.now());
         borrowingRepository.save(borrowing);
