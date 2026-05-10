@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/books")
@@ -24,19 +23,13 @@ public class BookController {
     }
 
     @PostMapping("/{id}/borrow")
-    public ResponseEntity<Void> borrowBook(
-            @PathVariable String id,
-            @RequestBody BorrowRequest request
-    ) {
+    public ResponseEntity<Void> borrowBook(@PathVariable String id, @RequestBody BorrowRequest request) {
         bookService.borrowBook(id, request.getUserId());
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/return")
-    public ResponseEntity<Void> returnBook(
-            @PathVariable String id,
-            @RequestBody BorrowRequest request
-    ) {
+    public ResponseEntity<Void> returnBook(@PathVariable String id, @RequestBody BorrowRequest request) {
         bookService.returnBook(id, request.getUserId());
         return ResponseEntity.noContent().build();
     }
