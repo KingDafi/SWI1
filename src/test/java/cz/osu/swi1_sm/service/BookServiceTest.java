@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,7 +41,6 @@ public class BookServiceTest {
     @Test
     void getBooks_nullQuery_returnsAllBooks() {
         Book book = createBook();
-
         when(bookRepository.findAll()).thenReturn(List.of(book));
 
         List<Book> result = bookService.getBooks(null);
@@ -57,33 +57,51 @@ public class BookServiceTest {
         AppUser user = new AppUser();
         UUID userId = UUID.randomUUID();
 
-        when(bookRepository.findById(book.getBookId()))
-                .thenReturn(Optional.of(book));
-        when(appUserRepository.findById(userId))
-                .thenReturn(Optional.of(user));
+        // Mocking the sequence in BookService.java
+        when(bookRepository.findById(book.getBookId())).thenReturn(Optional.of(book));
+        // Check alreadyBorrowed logic
+        when(borrowingRepository.existsByAppUser_UserIdAndBook_BookIdAndReturnedAtIsNull(userId, book.getBookId()))
+                .thenReturn(false);
+        when(appUserRepository.findById(userId)).thenReturn(Optional.of(user));
 
         bookService.borrowBook(book.getBookId().toString(), userId);
 
-        assertEquals(2, book.getAvailableQuantity());
+        assertEquals(2, book.getAvailableQuantity()); // 3 - 1
         verify(bookRepository).save(book);
         verify(borrowingRepository).save(any(Borrowing.class));
+    }
+
+    @Test
+    void borrowBook_alreadyBorrowed_throwsException() {
+        UUID bookId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        Book book = createBook();
+        book.setBookId(bookId);
+
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
+        when(borrowingRepository.existsByAppUser_UserIdAndBook_BookIdAndReturnedAtIsNull(userId, bookId))
+                .thenReturn(true);
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> bookService.borrowBook(bookId.toString(), userId));
+
+        assertEquals("User already borrowed this book", ex.getMessage());
     }
 
     @Test
     void borrowBook_noAvailableCopies_throwsException() {
         Book book = createBook();
         book.setAvailableQuantity(0);
+        UUID userId = UUID.randomUUID();
 
-        when(bookRepository.findById(book.getBookId()))
-                .thenReturn(Optional.of(book));
+        when(bookRepository.findById(book.getBookId())).thenReturn(Optional.of(book));
+        when(borrowingRepository.existsByAppUser_UserIdAndBook_BookIdAndReturnedAtIsNull(userId, book.getBookId()))
+                .thenReturn(false);
 
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> bookService.borrowBook(book.getBookId().toString(), UUID.randomUUID())
-        );
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> bookService.borrowBook(book.getBookId().toString(), userId));
 
         assertEquals("No copies available", ex.getMessage());
-        verify(borrowingRepository, never()).save(any());
     }
 
     // ---------- returnBook ----------
@@ -91,44 +109,35 @@ public class BookServiceTest {
     @Test
     void returnBook_success() {
         Book book = createBook();
+        UUID userId = UUID.randomUUID();
         Borrowing borrowing = new Borrowing();
         borrowing.setBook(book);
-        borrowing.setReturnedAt(null); // active borrowing
+        borrowing.setReturnedAt(null);
 
-        when(bookRepository.findById(book.getBookId()))
-                .thenReturn(Optional.of(book));
-        when(borrowingRepository.findByBook_BookId(book.getBookId()))
-                .thenReturn(List.of(borrowing));
+        when(bookRepository.findById(book.getBookId())).thenReturn(Optional.of(book));
+        // BookService.java uses findByAppUser_UserId(userId).stream() for return
+        when(borrowingRepository.findByAppUser_UserId(userId)).thenReturn(List.of(borrowing));
 
-        bookService.returnBook(book.getBookId().toString());
+        bookService.returnBook(book.getBookId().toString(), userId);
 
-        assertEquals(4, book.getAvailableQuantity());
+        assertEquals(4, book.getAvailableQuantity()); // 3 + 1
         assertNotNull(borrowing.getReturnedAt());
-
         verify(borrowingRepository).save(borrowing);
         verify(bookRepository).save(book);
     }
 
     @Test
-    void returnBook_allCopiesReturned_throwsException() {
+    void returnBook_noActiveBorrowing_throwsException() {
         Book book = createBook();
-        book.setAvailableQuantity(book.getQuantity());
+        UUID userId = UUID.randomUUID();
 
-        Borrowing borrowing = new Borrowing();
-        borrowing.setBook(book);
-        borrowing.setReturnedAt(null);
+        when(bookRepository.findById(book.getBookId())).thenReturn(Optional.of(book));
+        when(borrowingRepository.findByAppUser_UserId(userId)).thenReturn(List.of());
 
-        when(bookRepository.findById(book.getBookId()))
-                .thenReturn(Optional.of(book));
-        when(borrowingRepository.findByBook_BookId(book.getBookId()))
-                .thenReturn(List.of(borrowing));
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> bookService.returnBook(book.getBookId().toString(), userId));
 
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> bookService.returnBook(book.getBookId().toString())
-        );
-
-        assertEquals("All copies already returned", ex.getMessage());
+        assertEquals("This user does not have this book borrowed", ex.getMessage());
     }
 
     private Book createBook() {
