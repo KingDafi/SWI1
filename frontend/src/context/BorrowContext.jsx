@@ -1,37 +1,41 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import axiosClient from '../services/axiosClient';
+import { useAuth } from './AuthContext';
 
 const BorrowContext = createContext(null);
 
 export function BorrowProvider({ children }) {
+    const { user } = useAuth();
+    const [borrowedBooks, setBorrowedBooks] = useState([]);
 
-    const borrowBook = async (bookId, userId) => {
-        await axiosClient.post(`/books/${bookId}/borrow`, {
-            userId,
-        });
-    };
-
-    const handleBorrow = () => {
-        if (!user) {
-            navigate('/login');
-            return;
+    const fetchBorrowings = async () => {
+        if (user?.userId) {
+            const res = await axiosClient.get(`/borrowings/${user.userId}`);
+            setBorrowedBooks(res.data.filter(b => b.returnedAt === null));
         }
-        borrowBook(book.bookId, user.userId);
     };
 
-    const returnBook = async (bookId, userId) => {
-        await axiosClient.post(`/books/${bookId}/return`, { userId });
+    useEffect(() => { fetchBorrowings(); }, [user]);
+
+    const borrowBook = async (bookId) => {
+        if (!user) return;
+        await axiosClient.post(`/books/${bookId}/borrow`, { userId: user.userId });
+        await fetchBorrowings(); // Okamžitá aktualizace stavu
     };
+
+    const returnBook = async (bookId) => {
+        if (!user) return;
+        await axiosClient.post(`/books/${bookId}/return`, { userId: user.userId });
+        await fetchBorrowings();
+    };
+
+    const isBorrowed = (bookId) => borrowedBooks.some(b => b.book.bookId === bookId);
 
     return (
-        <BorrowContext.Provider value={{ borrowBook, returnBook }}>
+        <BorrowContext.Provider value={{ borrowedBooks, borrowBook, returnBook, isBorrowed }}>
             {children}
         </BorrowContext.Provider>
     );
 }
 
-export function useBorrow() {
-    const ctx = useContext(BorrowContext);
-    if (!ctx) throw new Error('useBorrow must be used within a BorrowProvider');
-    return ctx;
-}
+export const useBorrow = () => useContext(BorrowContext);
