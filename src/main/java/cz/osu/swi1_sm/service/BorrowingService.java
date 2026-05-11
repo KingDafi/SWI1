@@ -20,7 +20,6 @@ public class BorrowingService {
     private final BookRepository bookRepository;
     private final AppUserRepository userRepository;
 
-    // Vložení všech potřebných repozitářů
     public BorrowingService(BorrowingRepository borrowingRepository, BookRepository bookRepository, AppUserRepository userRepository) {
         this.borrowingRepository = borrowingRepository;
         this.bookRepository = bookRepository;
@@ -31,28 +30,23 @@ public class BorrowingService {
         return borrowingRepository.findByAppUser_UserId(userId);
     }
 
-    // @Transactional zajistí, že pokud dojde k chybě, databáze se vrátí do původního stavu
     @Transactional
     public Borrowing borrowBook(UUID bookId, UUID userId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Kniha nebyla nalezena."));
 
-        // 1. Kontrola, jestli uživatel knihu už aktuálně nemá půjčenou
         boolean alreadyBorrowed = borrowingRepository.existsByAppUser_UserIdAndBook_BookIdAndReturnedAtIsNull(userId, bookId);
         if (alreadyBorrowed) {
             throw new RuntimeException("Tuto knihu již máte vypůjčenou.");
         }
 
-        // 2. Kontrola skladu
         if (book.getAvailableQuantity() <= 0) {
             throw new RuntimeException("Kniha je momentálně rozebraná.");
         }
 
-        // 3. Snížení počtu dostupných kusů a uložení knihy
         book.setAvailableQuantity(book.getAvailableQuantity() - 1);
         bookRepository.save(book);
 
-        // 4. Nalezení uživatele a vytvoření záznamu o výpůjčce
         AppUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Uživatel nenalezen."));
 
@@ -60,9 +54,8 @@ public class BorrowingService {
         borrowing.setBook(book);
         borrowing.setAppUser(user);
 
-        // Nastavíme dnešní datum (Zkontroluj, zda se tvoje pole jmenuje borrowedAt nebo borrowedDate)
         borrowing.setBorrowedAt(LocalDate.now());
-        borrowing.setDueDate(LocalDate.now().plusDays(30)); // Kniha se musí vrátit za 30 dní
+        borrowing.setDueDate(LocalDate.now().plusDays(30));
 
         return borrowingRepository.save(borrowing);
     }
